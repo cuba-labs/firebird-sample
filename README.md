@@ -13,4 +13,11 @@ Some CUBA entities contains attributes with reserved RDBMS keyword for Firebird 
 * [FirebirdAppContextLoader](https://github.com/comru/firebird/blob/master/modules/core/src/com/company/firebird4/core/FirebirdAppContextLoader.java) - change mapping column name for reserved RDBMS keywords.
 * [FirebirdConfigStorage](https://github.com/comru/firebird/blob/master/modules/core/src/com/company/firebird4/core/FirebirdConfigStorage.java) - change native query with reserved RDBMS keywords.
 
+How to run project?
+1. Install Fierbird DB server.
+2. Open the project in CUBA Studio (Import -> Git)
+3. 
+
 How to use?
+
+
