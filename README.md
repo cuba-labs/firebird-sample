@@ -2,11 +2,15 @@
 Cuba app-component provided support Firebird database.
 
 Basic classes:
+* [FirebirdDdlGenerator](https://github.com/comru/firebird/blob/master/modules/core/src/com/haulmont/studio/db/firebird/FirebirdDdlGenerator.groovy) - This class is used by Studio at design time for working with Firebird. It provides a set of properties and methods for generation of database init and update scripts, and for creating model from an existing database.
+* [FirebirdDbProperties](https://github.com/comru/firebird/blob/master/modules/core/src/com/haulmont/studio/db/firebird/FirebirdDbProperties.groovy) - This class is used by Studio at design time for working with Firebird. It defines custom database properties that are needed to configure projects using Firebird.
+* [FirebirdDbmsFeatures](https://github.com/comru/firebird/blob/master/modules/core/src/com/haulmont/cuba/core/sys/persistence/FirebirdDbmsFeatures.java) - DbmsFeatures implementation for Firebird.
+* [FirebirdDbTypeConverter](https://github.com/comru/firebird/blob/master/modules/core/src/com/haulmont/cuba/core/sys/persistence/FirebirdDbTypeConverter.java) - DbTypeConverter implementation for Firebird.
+* [FirebirdSequenceSupport](https://github.com/comru/firebird/blob/master/modules/core/src/com/haulmont/cuba/core/sys/persistence/FirebirdSequenceSupport.java) - SequenceSupport implementation for Firebird.
 
-* FirebirdDdlGenerator - This class is used by Studio at design time for working with Firebird.
-It provides a set of properties and methods for generation of database init and update scripts, and for creating model from an existing database.
-* FirebirdDbProperties - This class is used by Studio at design time for working with Firebird. 
-It defines custom database properties that are needed to configure projects using Firebird.
-* FirebirdDbmsFeatures - DbmsFeatures implementation for Firebird.
-* FirebirdDbTypeConverter - DbTypeConverter implementation for Firebird.
-* FirebirdSequenceSupport - SequenceSupport implementation for Firebird.
+Some CUBA entities contains attributes with reserved RDBMS keyword for Firebird DDL. It is for this reason needed override com.haulmont.cuba.core.sys.AppContextLoader and com.haulmont.cuba.core.app.ConfigStorage. Overrided classes:
+
+* [FirebirdAppContextLoader](https://github.com/comru/firebird/blob/master/modules/core/src/com/company/firebird4/core/FirebirdAppContextLoader.java) - change mapping column name for reserved RDBMS keywords.
+* [FirebirdConfigStorage](https://github.com/comru/firebird/blob/master/modules/core/src/com/company/firebird4/core/FirebirdConfigStorage.java) - change native query with reserved RDBMS keywords.
+
+How to use?
