@@ -1,0 +1,258 @@
+
+buildscript {
+    ext.cubaVersion = '6.8.0.RC1'
+    repositories {
+        
+        maven {
+            url 'https://repo.cuba-platform.com/content/groups/work'
+            credentials {
+                username(rootProject.hasProperty('repoUser') ? rootProject['repoUser'] : 'cuba')
+                password(rootProject.hasProperty('repoPass') ? rootProject['repoPass'] : 'cuba123')
+            }
+        }
+        
+    }
+    dependencies {
+        classpath "com.haulmont.gradle:cuba-plugin:$cubaVersion"
+        classpath 'org.firebirdsql.jdbc:jaybird:2.2.5'
+    }
+}
+
+def modulePrefix = 'app'
+
+def globalModule = project(":${modulePrefix}-global")
+def coreModule = project(":${modulePrefix}-core")
+def guiModule = project(":${modulePrefix}-gui")
+def webModule = project(":${modulePrefix}-web")
+
+def servletApi = 'org.apache.tomcat:tomcat-servlet-api:8.0.26'
+
+
+apply(plugin: 'idea')
+apply(plugin: 'cuba')
+
+cuba {
+    artifact {
+        group = 'com.company.firebird4'
+        version = '0.1'
+        isSnapshot = true
+    }
+    tomcat {
+        dir = "$project.rootDir/deploy/tomcat"
+    }
+    ide {
+        vcs = 'Git'
+    }
+}
+
+dependencies {
+    appComponent("com.haulmont.cuba:cuba-global:$cubaVersion")
+
+}
+
+def firebird = 'org.firebirdsql.jdbc:jaybird:2.2.5'
+
+configure([globalModule, coreModule, guiModule, webModule]) {
+    apply(plugin: 'java')
+    apply(plugin: 'maven')
+    apply(plugin: 'idea')
+    apply(plugin: 'cuba')
+
+    dependencies {
+        testCompile('junit:junit:4.12')
+    }
+
+    task sourceJar(type: Jar) {
+        from file('src')
+        classifier = 'sources'
+    }
+
+    artifacts {
+        archives sourceJar
+    }
+}
+
+configure(globalModule) {
+    task enhance(type: CubaEnhancing)
+
+    
+}
+
+configure(coreModule) {
+
+    configurations {
+        jdbc
+        dbscripts
+    }
+
+    dependencies {
+        compile(globalModule)
+        provided(servletApi)
+        compile(firebird)
+        jdbc(firebird)
+        testRuntime(firebird)
+
+    }
+
+    task cleanConf(description: 'Cleans up conf directory') {
+        doLast {
+            def dir = new File(cuba.tomcat.dir, "/conf/${modulePrefix}-core")
+            if (dir.isDirectory()) {
+                ant.delete(includeemptydirs: true) {
+                    fileset(dir: dir, includes: '**/*', excludes: 'local.app.properties')
+                }
+            }
+        }
+    }
+
+    task deploy(dependsOn: [assemble, cleanConf], type: CubaDeployment) {
+        appName = "${modulePrefix}-core"
+        appJars(modulePrefix + '-global', modulePrefix + '-core')
+    }
+
+    task createDb(dependsOn: assembleDbScripts, description: 'Creates local database', type: FierbirdDbCreation) {
+        timeStampType = 'timestamp'
+        dbUrl = 'jdbc:firebirdsql://localhost/firebird6'
+        driver = 'org.firebirdsql.jdbc.FBDriver'
+        dbms = 'firebird'
+        host = 'localhost'
+        dbName = 'firebird6'
+        dbUser = 'sysdba'
+        dbPassword = 'masterkey'
+    }
+
+    task updateDb(dependsOn: assembleDbScripts, description: 'Updates local database', type: CubaDbUpdate) {
+        timeStampType = 'timestamp'
+        dbUrl = 'jdbc:firebirdsql://localhost/firebird6'
+        driver = 'org.firebirdsql.jdbc.FBDriver'
+        dbms = 'firebird'
+        host = 'localhost'
+        dbName = 'firebird6'
+        dbUser = 'sysdba'
+        dbPassword = 'masterkey'
+    }
+}
+
+configure(guiModule) {
+    dependencies {
+        compile(globalModule)
+
+    }
+
+    task deployConf(type: Copy) {
+        from file('src')
+        include "com/company/firebird4/**"
+        into "$cuba.tomcat.dir/conf/${modulePrefix}"
+    }
+}
+
+configure(webModule) {
+    configurations {
+        webcontent
+    }
+
+    dependencies {
+        provided(servletApi)
+        compile(guiModule)
+
+    }
+    
+    task webArchive(type: Zip) {
+        from file("$buildDir/web")
+        from file('web')
+        classifier = 'web'
+    }
+
+    artifacts {
+        archives webArchive
+    }
+
+    task deployConf(type: Copy) {
+        from file('src')
+        include "com/company/firebird4/**"
+        into "$cuba.tomcat.dir/conf/${modulePrefix}"
+    }
+
+    task clearMessagesCache(type: CubaClearMessagesCache) {
+        appName = "${modulePrefix}"
+    }
+    deployConf.dependsOn clearMessagesCache
+
+    task cleanConf(description: 'Cleans up conf directory') {
+        doLast {
+            def dir = new File(cuba.tomcat.dir, "/conf/${modulePrefix}")
+            if (dir.isDirectory()) {
+                ant.delete(includeemptydirs: true) {
+                    fileset(dir: dir, includes: '**/*', excludes: 'local.app.properties')
+                }
+            }
+        }
+    }
+
+    task deploy(dependsOn: [assemble, cleanConf], type: CubaDeployment) {
+        appName = "${modulePrefix}"
+        appJars(modulePrefix + '-global', modulePrefix + '-gui', modulePrefix + '-web')
+    }
+}
+
+
+
+
+
+task undeploy(type: Delete, dependsOn: ":${modulePrefix}-web:cleanConf") {
+    delete("$cuba.tomcat.dir/shared")
+    delete("$cuba.tomcat.dir/webapps/${modulePrefix}-core")
+    delete("$cuba.tomcat.dir/webapps/${modulePrefix}")
+}
+
+task restart(dependsOn: ['stop', ":${modulePrefix}-core:deploy", ":${modulePrefix}-web:deploy"], description: 'Redeploys applications and restarts local Tomcat') {
+    doLast {
+        ant.waitfor(maxwait: 6, maxwaitunit: 'second', checkevery: 2, checkeveryunit: 'second') {
+            not {
+                socket(server: 'localhost', port: '8787')
+            }
+        }
+        start.execute()
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.3.1'
+}
+
+class FierbirdDbCreation extends com.haulmont.gradle.task.db.AbstractCubaDbCreation {
+    @org.gradle.api.tasks.TaskAction
+    void createDb() {
+        super.createDb()
+    }
+
+    void dropAndCreateDatabase() {
+        org.firebirdsql.management.FBManager manager = new org.firebirdsql.management.FBManager();
+        manager.setServer('localhost')
+        manager.setPort(3050)
+        manager.setUserName(dbUser)
+        manager.setPassword(dbPassword)
+        try {
+            manager.start()
+            manager.dropDatabase("C:\\Users\\zlatoverov.HAULMONT\\firebird\\data\\FIREBIRD6.FDB", dbUser, dbPassword)
+            project.logger.warn("Databese droped")
+            manager.stop()
+        } catch (Exception e) {
+            project.logger.error("Databese drop failed", e)
+        }
+
+        try {
+            manager.start();
+            manager.createDatabase("C:\\Users\\zlatoverov.HAULMONT\\firebird\\data\\FIREBIRD6.FDB", dbUser, dbPassword)
+            project.logger.warn("Databese created")
+            manager.stop();
+
+            def aliasesConfigFile = new File('D:\\apps\\Firebird_2_5\\aliases.conf')
+            aliasesConfigFile.append("\n\nfirebird6 = C:\\Users\\zlatoverov.HAULMONT\\firebird\\data\\FIREBIRD6.FDB")
+        } catch (Exception e) {
+            throw new RuntimeException("Database creating failed", e)
+        }
+    }
+}
+
+apply from: 'extra.gradle'
