@@ -1,5 +1,5 @@
 # firebird
-Cuba app-component provided support Firebird database.
+Cuba app-component provided support [Firebird](https://firebirdsql.org/) database.
 
 Basic classes:
 * [FirebirdDdlGenerator](https://github.com/comru/firebird/blob/master/modules/core/src/com/haulmont/studio/db/firebird/FirebirdDdlGenerator.groovy) - This class is used by Studio at design time for working with Firebird. It provides a set of properties and methods for generation of database init and update scripts, and for creating model from an existing database.
@@ -16,8 +16,13 @@ Some CUBA entities contains attributes with reserved RDBMS keyword for Firebird 
 How to run project?
 1. Install Fierbird DB server.
 2. Open the project in CUBA Studio (Import -> Git)
-3. 
+3. Create DB (Run -> Create database). В build.gradle используется собственный тип задачи `crateDb` - FierbirdDbCreation,
+ который переопределяет поведение удаления и создания БД. Это сделанно, по причине того, что стандартное поведение
+  CubaDbCreation расчитывает на возможность удалить и создать БД c помощью JDBC (ant.sql).
+  FierbirdDbCreation использует абсолютный путь до расположения Firebird `aliases.conf` файла и
+  до места создания нового файла *.FDB БД. FierbirdDbCreation#dropAndCreateDatabase нужно и можно менять.
+4. Start project.
 
-How to use?
+Use as app-component?
 
 
