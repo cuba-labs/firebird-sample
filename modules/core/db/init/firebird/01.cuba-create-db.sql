@@ -8,7 +8,7 @@ create table SYS_CONFIG (
     UPDATED_BY varchar(50),
     --
     NAME varchar(255),
-    VALUE varchar(255),
+    VALUE_ varchar(255),
     --
     primary key (ID)
 )^
@@ -127,7 +127,7 @@ create table SEC_PERMISSION (
     --
     PERMISSION_TYPE integer,
     TARGET varchar(100),
-    VALUE integer,
+    VALUE_ integer,
     ROLE_ID varchar(36),
     --
     primary key (ID)
@@ -609,7 +609,7 @@ create table SEC_USER_SETTING (
     USER_ID varchar(36),
     CLIENT_TYPE varchar(50),
     NAME varchar(255),
-    VALUE blob sub_type text,
+    VALUE_ blob sub_type text,
     --
     primary key (ID)
 )^
