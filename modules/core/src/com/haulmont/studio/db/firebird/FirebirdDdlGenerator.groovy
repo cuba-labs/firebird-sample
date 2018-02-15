@@ -255,7 +255,7 @@ class FirebirdDdlGenerator {
         if (!attribute.isEmbedded()) {
             StringBuilder sb = new StringBuilder()
             String col = delegate.getColumnDefinition(entity, attribute, column.toUpperCase(), attribute.isMandatory() && attribute.isClass())
-            sb.append("alter table ${entity.table} add column $col ^")
+            sb.append("alter table ${entity.table} add $col ^")
             delegate.processScriptAddingMandatoryColumn(sb, entity, attribute, column.empty ? attribute.getDdlManipulationColumn() : column)
             return sb.toString()
         } else {
@@ -273,7 +273,7 @@ class FirebirdDdlGenerator {
      * @return "alter table add column" statement
      */
     String getAddColumnStatement(String tableName, String columnName, def type, boolean notNull) {
-        return "alter table ${tableName} add column ${columnName} ${delegate.defaultGetColumnType(type.className)} ${notNull ? 'not null ' : ''} ^"
+        return "alter table ${tableName} add ${columnName} ${delegate.defaultGetColumnType(type.className)} ${notNull ? 'not null ' : ''} ^"
     }
 
     /**
@@ -650,10 +650,10 @@ class FirebirdDdlGenerator {
     /**
      * (non-Javadoc)
      *
-     * @see {@link DdlGeneratorDelegate#replaceDelimiter(java.lang.String)}
+     * @see {@link DdlGeneratorDelegate#defaultReplaceDelimiter(java.lang.String)}
      */
     String replaceDelimiter(String script) {
-        delegate.defaultReplaceDelimiter(script)
+        return script.replaceAll('([^\\^])\\^{2}([^\\^]|\\z)','$1\\^$2')
     }
 
     Integer getIdentifierMaxLength() {

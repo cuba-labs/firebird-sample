@@ -4,4 +4,31 @@
         <functionality id="oneToOneIndex"
                        state="ENABLE"/>
     </functionalitySettings>
+    <dbScripts>
+        <excludes>
+            <firebird>
+                <item name="001-180215-2-updateSecPermission.sql">
+                    <![CDATA[alter table SEC_PERMISSION alter column VALUE_ to VALUE___UNUSED ^
+alter table SEC_PERMISSION add VALUE integer ^]]>
+                </item>
+                <item name="001-180215-2-updateSysConfig_DropScript.sql">
+                    <![CDATA[alter table SYS_CONFIG drop VALUE___UNUSED ^]]>
+                </item>
+                <item name="001-180215-2-updateSysConfig.sql">
+                    <![CDATA[alter table SYS_CONFIG alter column VALUE_ to VALUE___UNUSED ^
+alter table SYS_CONFIG add VALUE varchar(255) ^]]>
+                </item>
+                <item name="001-180215-2-updateSecUserSetting_DropScript.sql">
+                    <![CDATA[alter table SEC_USER_SETTING drop VALUE___UNUSED ^]]>
+                </item>
+                <item name="001-180215-2-updateSecUserSetting.sql">
+                    <![CDATA[alter table SEC_USER_SETTING alter column VALUE_ to VALUE___UNUSED ^
+alter table SEC_USER_SETTING add VALUE blob sub_type text ^]]>
+                </item>
+                <item name="001-180215-2-updateSecPermission_DropScript.sql">
+                    <![CDATA[alter table SEC_PERMISSION drop VALUE___UNUSED ^]]>
+                </item>
+            </firebird>
+        </excludes>
+    </dbScripts>
 </studio>
