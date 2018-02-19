@@ -74,7 +74,7 @@ class FirebirdDdlGenerator {
             'Integer' : '0',
             'Long' : '0',
             'String' : "''",
-            'UUID' : 'newid()'
+            'UUID' : '(select res from newid)'
     ]
     /**
      * Collection of column type synonyms. A synonym is a column type that can be used for the same Java type.

@@ -761,6 +761,16 @@ create table SEC_LOCALIZED_CONSTRAINT_MSG (
 
 ----------------------------------------------------------------------------------------------------------
 
+create procedure newid
+    returns (res varchar(36))
+    as
+    begin
+        res = uuid_to_char(gen_uuid());
+        suspend;
+    end ^
+
+----------------------------------------------------------------------------------------------------------
+
 insert into SEC_GROUP (ID, CREATE_TS, VERSION, NAME, PARENT_ID)
 values ('0fa2b1a5-1d68-4d69-9fbd-dff348347f93', CURRENT_TIMESTAMP, 0, 'Company', null)^
 

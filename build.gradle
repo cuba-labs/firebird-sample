@@ -241,7 +241,7 @@ class FierbirdDbCreation extends com.haulmont.gradle.task.db.AbstractCubaDbCreat
         manager.setPassword(dbPassword)
         try {
             manager.start()
-            manager.dropDatabase("C:\\Users\\zlatoverov.HAULMONT\\firebird\\data\\FIREBIRD6.FDB", dbUser, dbPassword)
+            manager.dropDatabase("D:\\work\\firebird_storage\\FIREBIRD6.FDB", dbUser, dbPassword)
             project.logger.warn("Databese droped")
             manager.stop()
         } catch (Exception e) {
@@ -250,12 +250,12 @@ class FierbirdDbCreation extends com.haulmont.gradle.task.db.AbstractCubaDbCreat
 
         try {
             manager.start();
-            manager.createDatabase("C:\\Users\\zlatoverov.HAULMONT\\firebird\\data\\FIREBIRD6.FDB", dbUser, dbPassword)
+            manager.createDatabase("D:\\work\\firebird_storage\\FIREBIRD6.FDB", dbUser, dbPassword)
             project.logger.warn("Databese created")
             manager.stop();
 
             def aliasesConfigFile = new File('D:\\apps\\Firebird_2_5\\aliases.conf')
-            aliasesConfigFile.append("\n\nfirebird6 = C:\\Users\\zlatoverov.HAULMONT\\firebird\\data\\FIREBIRD6.FDB")
+            aliasesConfigFile.append("\n\nfirebird6 = D:\\work\\firebird_storage\\FIREBIRD6.FDB")
         } catch (Exception e) {
             throw new RuntimeException("Database creating failed", e)
         }
