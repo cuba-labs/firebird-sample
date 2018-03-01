@@ -44,6 +44,7 @@ to the aliases.conf and fdb files.
 6. Select Firebird db type.
 3. In build.gradle - create a FierbirdDbCreation class which extends the AbstractDbCreation class and override
 the dropAndCreateDatabase method. Find an example [here](https://github.com/comru/firebird/blob/master/build.gradle#L230).
+Replace the type of 'createDb' task with FierbirdDbCreation instead of CubaDbCreation class.
 Note, that this implementation refers to the full path to the aliases.conf and fdb files.
 7. Add Firebird dependecy to buildscript dependencies block. Find an example
  [here](https://github.com/comru/firebird/blob/master/build.gradle#L17).
