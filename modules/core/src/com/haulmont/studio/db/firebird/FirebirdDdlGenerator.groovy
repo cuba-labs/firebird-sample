@@ -659,4 +659,14 @@ class FirebirdDdlGenerator {
     Integer getIdentifierMaxLength() {
         return 30
     }
+
+    String generateImportInitScript() {
+        return '''create procedure newid
+returns (res varchar(36))
+as
+begin
+    res = uuid_to_char(gen_uuid());
+    suspend;
+end ^'''
+    }
 }
