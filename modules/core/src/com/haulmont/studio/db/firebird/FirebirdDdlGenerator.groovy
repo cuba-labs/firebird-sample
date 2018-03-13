@@ -669,4 +669,8 @@ begin
     suspend;
 end ^'''
     }
+
+    boolean isGenerateSeparatelyDropScripts() {
+        return false
+    }
 }
