@@ -373,6 +373,7 @@ create table SYS_SENDING_MESSAGE (
     ATTEMPTS_COUNT integer,
     ATTEMPTS_MADE integer,
     EMAIL_HEADERS varchar(255),
+    BODY_CONTENT_TYPE varchar(50),
     --
     primary key (ID)
 )^

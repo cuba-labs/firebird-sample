@@ -8,5 +8,4 @@
     <!-- Annotation-based beans -->
     <context:component-scan base-package="com.company.firebird4"/>
 
-    <bean id="cuba_ConfigStorage" class="com.company.firebird4.core.FirebirdConfigStorage"/>
 </beans>
