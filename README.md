@@ -14,15 +14,6 @@ Integration is implemented in the following classes:
 * [FirebirdSequenceSupport](https://github.com/comru/firebird/blob/master/modules/core/src/com/haulmont/cuba/core/sys/persistence/FirebirdSequenceSupport.java) -
  Implements the SequenceSupport interface for Firebird.
 
-Some CUBA entities contains attributes with reserved RDBMS keyword for Firebird DDL. As a workaround it is required to override the following classes:
-
-* com.haulmont.cuba.core.sys.AppContextLoader is overridden by the
-[FirebirdAppContextLoader](https://github.com/comru/firebird/blob/master/modules/core/src/com/company/firebird4/core/FirebirdAppContextLoader.java) class -
-modifies column names which cannot be used in Firebird.
-* com.haulmont.cuba.core.app.ConfigStorage is overridden by the
-[FirebirdConfigStorage](https://github.com/comru/firebird/blob/master/modules/core/src/com/company/firebird4/core/FirebirdConfigStorage.java) class -
-modifies SQL query that conflicts with reserved keywords convention of Firebird.
-
 ## Running the project
 
 1. Install Fierbird DB server.
@@ -33,8 +24,6 @@ to the aliases.conf and fdb files.
 5. Start the project from the Studio
 
 ## Using as app-component
-
-
 
 1. Install Fierbird DB server.
 2. Open the project in CUBA Studio (Import -> Git).
@@ -49,8 +38,6 @@ Note, that this implementation refers to the full path to the aliases.conf and f
 7. Add Firebird dependecy to buildscript dependencies block. Find an example
  [here](https://github.com/comru/firebird/blob/master/build.gradle#L17).
 8. In build.gradle - remove masterUrl, createDbSql, dropDbSql property of `createDb` task.
-9. Add the FirebirdAppContextLoader class and register it in \core\web\WEB-INF\web.xml. Find an example
- [here](https://github.com/comru/firebird/blob/master/modules/core/web/WEB-INF/web.xml#L19).
 10. Execute the create db task from Studio.
 11. Start the project from the Studio.
 
