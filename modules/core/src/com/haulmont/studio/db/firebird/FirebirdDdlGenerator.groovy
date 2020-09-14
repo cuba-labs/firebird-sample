@@ -302,8 +302,12 @@ class FirebirdDdlGenerator {
      */
     String getAlterColumnDecimalParamsStatement(def entity, def attribute, String newType, String columnName) {
         String col = delegate.getColumnName(attribute, columnName)
-        String params = delegate.getDecimalParams(entity, attribute)
-        return "alter table ${entity.table} alter column ${col} ${newType}(${params}) ^"
+
+        // instead of
+        // String params = delegate.getDecimalParams(entity, attribute)
+        String params = getFirebirdDecimalParams(attribute.precision, attribute.scale)
+
+        return "alter table ${entity.table} alter column ${col} type ${newType}${params} ^"
     }
 
     /**
@@ -317,7 +321,7 @@ class FirebirdDdlGenerator {
      */
     String getAlterColumnTypeStatement(def entity, def attribute, String newType, String columnName) {
         String col = delegate.getColumnName(attribute, columnName)
-        return "alter table ${entity.table} alter column ${col} ${newType} ^"
+        return "alter table ${entity.table} alter column ${col} type ${newType} ^"
     }
 
     /**
@@ -330,9 +334,9 @@ class FirebirdDdlGenerator {
      * @return "alter table alter column" statement
      */
     String getAlterColumnMandatoryStatement(String tableName, String columnName, String columnDef, boolean isMandatory) {
-        delegate.showNotification("WARNING", "Firebird unsupported alter mandatory constraints for exists column. " +
+        delegate.showNotification("WARNING", "Firebird doesn't support alter mandatory constraints for existing column. " +
                 "Table: ${tableName}; Column: ${columnName}")
-        return """-- Firebird unsupported alter mandatory constraints for exists column.\n
+        return """-- Firebird doesn't support alter mandatory constraints for existing column.\n
 -- alter table ${tableName} alter column ${columnName} ${(isMandatory ? "set" : "drop")} not null ^"""
     }
 
@@ -356,8 +360,8 @@ class FirebirdDdlGenerator {
      * @return a statement
      */
     String getRenameTableSatement(String oldTable, String newTable) {
-        delegate.showNotification("WARNING", "Firebird unsupported rename table. Table - ${oldTable}")
-        return """-- Firebird unsupported rename table.
+        delegate.showNotification("WARNING", "Firebird doesn't support rename table. Table - ${oldTable}")
+        return """-- Firebird doesn't support rename table.
 -- alter table ${oldTable} rename to ${newTable} ^"""
     }
 
@@ -383,7 +387,11 @@ class FirebirdDdlGenerator {
      * @return true if the precision is different
      */
     boolean isPrecisionDifferent(int attributePrecision, int columnPrecision, String columnType) {
-        //default precision for decimal column in mssql is 18
+        // in Firebird maximum decimal precision is 18. Some CUBA entities define bigger precision.
+        if (columnType == 'decimal' && columnPrecision == 18 && attributePrecision > 18) {
+            return false
+        }
+
         return attributePrecision != columnPrecision && !(columnPrecision == 18 && attributePrecision == 0)
     }
 
@@ -538,12 +546,37 @@ class FirebirdDdlGenerator {
             params.append("(").append(delegate.getDefaultEnumColumnLength()).append(")");
         }
 
-        delegate.processBigDecimalParams(attribute, params)
+        // instead of
+        // delegate.processBigDecimalParams(attribute, params)
+        if (attrType.fqn?.equals('java.math.BigDecimal')) {
+            def precision = attribute.precision
+            def scale = attribute.scale
+            params.append(getFirebirdDecimalParams(precision, scale))
+        }
+
         //not null
         if ((attribute.mandatory && !attribute.isId()) && notNull) {
             params.append(" not null")
         }
         return params.toString()
+    }
+
+    // in Firebird maximum decimal precision is 18. Some CUBA entities define bigger precision.
+    private String getFirebirdDecimalParams(int precision, int scale) {
+        if (precision == -1 && scale == -1) {
+            return '(18, 2)'
+        } else if (precision != 0) {
+            if (precision > 18) {
+                precision = 18
+            }
+
+            if (scale != 0) {
+                return "($precision, $scale)"
+            } else {
+                return "($precision)"
+            }
+        }
+        return ''
     }
 
     /**
