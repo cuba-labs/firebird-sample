@@ -1,6 +1,6 @@
 
 buildscript {
-    ext.cubaVersion = '6.9-SNAPSHOT'
+    ext.cubaVersion = '6.10.18'
     repositories {
         
         maven {
@@ -14,7 +14,7 @@ buildscript {
     }
     dependencies {
         classpath "com.haulmont.gradle:cuba-plugin:$cubaVersion"
-        classpath 'org.firebirdsql.jdbc:jaybird:2.2.5'
+        classpath 'org.firebirdsql.jdbc:jaybird:4.0.1.java8'
     }
 }
 
@@ -50,7 +50,7 @@ dependencies {
 
 }
 
-def firebird = 'org.firebirdsql.jdbc:jaybird:2.2.5'
+def firebird = 'org.firebirdsql.jdbc:jaybird:4.0.1.java8'
 
 configure([globalModule, coreModule, guiModule, webModule]) {
     apply(plugin: 'java')
@@ -73,7 +73,9 @@ configure([globalModule, coreModule, guiModule, webModule]) {
 }
 
 configure(globalModule) {
-    task enhance(type: CubaEnhancing)
+    entitiesEnhancing {
+        main { enabled = true }
+    }
 
     jar {
         manifest {
@@ -81,8 +83,6 @@ configure(globalModule) {
             attributes('App-Component-Version': cuba.artifact.version + (cuba.artifact.isSnapshot ? '-SNAPSHOT' : ''))
         }
     }
-
-    
 }
 
 configure(coreModule) {
@@ -117,26 +117,29 @@ configure(coreModule) {
         appJars(modulePrefix + '-global', modulePrefix + '-core')
     }
 
-    task createDb(dependsOn: assembleDbScripts, description: 'Creates local database', type: FierbirdDbCreation) {
+    task createDb(dependsOn: assembleDbScripts, description: 'Creates local database', type: FirebirdDbCreation) {
+        createDbSql = "CREATE DATABASE '/home/budarov/fbdb/sample1.fdb' page_size 8192;"
+        dropDbSql = 'DROP DATABASE;'
+        masterUrl = ''
         timeStampType = 'timestamp'
-        dbUrl = 'jdbc:firebirdsql://localhost/firebird6'
         driver = 'org.firebirdsql.jdbc.FBDriver'
         dbms = 'firebird'
         host = 'localhost'
-        dbName = 'firebird6'
+        dbName = '/home/budarov/fbdb/sample1.fdb'
         dbUser = 'sysdba'
-        dbPassword = 'masterkey'
+        dbPassword = 'cuba'
+        dbUrl = "jdbc:firebirdsql://$host/$dbName?encoding=UTF8"
     }
 
     task updateDb(dependsOn: assembleDbScripts, description: 'Updates local database', type: CubaDbUpdate) {
         timeStampType = 'timestamp'
-        dbUrl = 'jdbc:firebirdsql://localhost/firebird6'
         driver = 'org.firebirdsql.jdbc.FBDriver'
         dbms = 'firebird'
         host = 'localhost'
-        dbName = 'firebird6'
+        dbName = '/home/budarov/fbdb/sample1.fdb'
         dbUser = 'sysdba'
-        dbPassword = 'masterkey'
+        dbPassword = 'cuba'
+        dbUrl = "jdbc:firebirdsql://$host/$dbName?encoding=UTF8"
     }
 }
 
@@ -227,7 +230,8 @@ task wrapper(type: Wrapper) {
     gradleVersion = '4.3.1'
 }
 
-class FierbirdDbCreation extends com.haulmont.gradle.task.db.AbstractCubaDbCreation {
+class FirebirdDbCreation extends CubaDbCreation {
+
     @org.gradle.api.tasks.TaskAction
     void createDb() {
         super.createDb()
@@ -235,31 +239,33 @@ class FierbirdDbCreation extends com.haulmont.gradle.task.db.AbstractCubaDbCreat
 
     void dropAndCreateDatabase() {
         org.firebirdsql.management.FBManager manager = new org.firebirdsql.management.FBManager();
-        manager.setServer('localhost')
+        manager.setServer(host)
         manager.setPort(3050)
         manager.setUserName(dbUser)
         manager.setPassword(dbPassword)
+        manager.setDefaultCharacterSet('UTF8')
         try {
             manager.start()
-            manager.dropDatabase("D:\\work\\firebird_storage\\FIREBIRD6.FDB", dbUser, dbPassword)
-            project.logger.warn("Databese droped")
-            manager.stop()
+            try {
+                manager.dropDatabase(dbName, dbUser, dbPassword)
+                project.logger.warn("Database dropped")
+            } finally {
+                manager.stop()
+            }
         } catch (Exception e) {
-            project.logger.error("Databese drop failed", e)
+            project.logger.error("Database drop failed", e)
         }
 
         try {
             manager.start();
-            manager.createDatabase("D:\\work\\firebird_storage\\FIREBIRD6.FDB", dbUser, dbPassword)
-            project.logger.warn("Databese created")
-            manager.stop();
-
-            def aliasesConfigFile = new File('D:\\apps\\Firebird_2_5\\aliases.conf')
-            aliasesConfigFile.append("\n\nfirebird6 = D:\\work\\firebird_storage\\FIREBIRD6.FDB")
+            try {
+                manager.createDatabase(dbName, dbUser, dbPassword)
+                project.logger.warn("Database created")
+            } finally {
+                manager.stop();
+            }
         } catch (Exception e) {
             throw new RuntimeException("Database creating failed", e)
         }
     }
 }
-
-apply from: 'extra.gradle'

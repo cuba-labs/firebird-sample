@@ -1,7 +1,7 @@
 package com.haulmont.studio.db.firebird
 
 import javax.annotation.Nullable
-import java.sql.DatabaseMetaData
+import java.sql.Connection
 import java.sql.SQLException
 
 /**
@@ -10,10 +10,11 @@ import java.sql.SQLException
  * An object of this type is available in each *DdlGenerator class.
  * You don't have to implement this interface, it has an implementation in Studio.
  */
+@SuppressWarnings("unused")
 interface DdlGeneratorDelegate {
 
     /*******************************************************************************************************************
-                                                   Helper methods
+     Helper methods
      ******************************************************************************************************************/
 
     /**
@@ -34,7 +35,7 @@ interface DdlGeneratorDelegate {
     /**
      * Returns the JDBC connection to the main data store.
      */
-    def getConnection()
+    Connection getConnection()
 
     /**
      * Returns the given column name wrapped in quotes if it must be used in quotes due to spaces, mixed case, etc.
@@ -80,11 +81,10 @@ interface DdlGeneratorDelegate {
      * Returns column length by parsing {@code length} attribute of the {@code @Column} annotation.
      * Searches all static variables in the class and its base classes.
      *
-     * @param entity    entity object
      * @param attribute attribute object
      * @return  length or null if there is no {@code length} attribute
      */
-    Integer getColumnLength(def entity, def attribute)
+    Integer getColumnLength(def attribute)
 
     /**
      * Returns the column name in uppercase or get it from entity attribute.
@@ -157,33 +157,27 @@ interface DdlGeneratorDelegate {
 
 
     /*******************************************************************************************************************
-                                                  Default implementations
+     Default implementations
      ******************************************************************************************************************/
 
     /**
      * Returns names of unique and non-unique indexes for a given column.
      *
-     * @param metaData      java.sql.DatabaseMetaData object
-     * @param schema        database schema
      * @param tableName     table name
      * @param columnName    column name
      * @return collection of index names
      */
-    Collection<String> defaultGetColumnIndexNames(DatabaseMetaData metaData, String schema,
-                                                  String tableName, String columnName)
+    Collection<String> defaultGetColumnIndexNames(String tableName, String columnName)
 
     /**
      * Returns names of constraints for a given column
      * obtaining them from {@link java.sql.DatabaseMetaData#getImportedKeys}
      *
-     * @param metaData      java.sql.DatabaseMetaData object
-     * @param schema        database schema
      * @param tableName     table name
      * @param columnName    column name
      * @return collection of constraint names
      */
-    Collection<String> defaultGetColumnConstraintNames(def metaData, String schema,
-                                                       String tableName, String columnName)
+    Collection<String> defaultGetColumnConstraintNames(String tableName, String columnName)
 
     /**
      * Returns the list of statements for dropping all constraints for a column.
@@ -297,8 +291,28 @@ interface DdlGeneratorDelegate {
      */
     String defaultReplaceDelimiter(String script)
 
-    Collection<String> defaultGetDropTableConstraintNames(
-            DatabaseMetaData metaDatam, String schema, String tableName) throws SQLException
+    /**
+     * Returns names of constraints for a given table
+     * obtaining them from {@link java.sql.DatabaseMetaData#getExportedKeys}
+     *
+     * @param tableName     table name
+     * @return collection of constraint names
+     * @throws SQLException
+     */
+    Collection<String> defaultGetDropTableConstraintNames(String tableName) throws SQLException
 
+    /**
+     * @return max length of constraints and indexes identifier. Return -1 if length is unlimited
+     */
+    Integer getIdentifierMaxLength()
+
+    /**
+     * Given notification will be shown as tray notification and printed in the console.
+     * If you want part of description text not to be printed in console, wrap it in
+     * <noconsole>Text that should be shown only in tray notification</noconsole> custom tag
+     *
+     * @param caption The message caption
+     * @param description The message description
+     */
     void showNotification(String caption, @Nullable String description)
 }

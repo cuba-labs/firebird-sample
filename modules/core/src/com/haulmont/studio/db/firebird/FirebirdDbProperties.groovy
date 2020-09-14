@@ -74,7 +74,7 @@ class FirebirdDbProperties {
      * </ul>
      */
     String getJdbcDriverDependency() {
-        return 'org.firebirdsql.jdbc:jaybird:2.2.5'
+        return 'org.firebirdsql.jdbc:jaybird:4.0.1.java8'
     }
 
     /**

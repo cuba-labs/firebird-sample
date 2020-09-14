@@ -1,6 +1,6 @@
 .gradle
 .studio
-*.ipr
+.idea
 *.iml
 *.iws
 build/*

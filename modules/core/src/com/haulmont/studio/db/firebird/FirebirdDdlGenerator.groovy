@@ -1,7 +1,6 @@
 package com.haulmont.studio.db.firebird
 
 import java.sql.DatabaseMetaData
-import groovy.sql.Sql
 
 /**
  * This class is used by Studio at design time for working with Firebird.
@@ -91,7 +90,7 @@ class FirebirdDdlGenerator {
      */
     List<List<String>> typeSynonyms = [
             ['char', 'character'],
-            ['blob'],
+            ['blob', 'blob sub_type binary'],
             ['timestamp'],
             ['time'],
             ['date'],
@@ -162,7 +161,7 @@ class FirebirdDdlGenerator {
      */
     List<String> getDropTableConstraintStatements(DatabaseMetaData metaData, String schema, String tableName) {
         List<String> result = []
-        delegate.defaultGetDropTableConstraintNames(metaData, schema, tableName).each {
+        delegate.defaultGetDropTableConstraintNames(tableName).each {
             result.add(getDropConstraintStatement(tableName, it.toUpperCase()))
         }
         return result
@@ -181,7 +180,7 @@ class FirebirdDdlGenerator {
      */
     Collection<String> getColumnIndexNames(DatabaseMetaData metaData, String schema, String tableName, String columnName) {
         Set<String> indexes = new LinkedHashSet<>()
-        delegate.defaultGetColumnIndexNames(metaData, schema, tableName, columnName).each {
+        delegate.defaultGetColumnIndexNames(tableName, columnName).each {
             indexes.add(it)
         }
         return indexes
@@ -201,7 +200,7 @@ class FirebirdDdlGenerator {
     Collection<String> getColumnConstraintNames(DatabaseMetaData metaData, String schema, String tableName,
                                                 String columnName) {
         Set<String> constraints = new LinkedHashSet<>()
-        delegate.defaultGetColumnConstraintNames(metaData, schema, tableName, columnName).each {
+        delegate.defaultGetColumnConstraintNames(tableName, columnName).each {
             constraints.add(it)
         }
         return constraints
@@ -287,7 +286,7 @@ class FirebirdDdlGenerator {
      */
     String getAlterColumnStringLengthStatement(def entity, def attribute, String newType, String columnName) {
         String col = delegate.getColumnName(attribute, columnName)
-        Integer length = delegate.getColumnLength(entity, attribute)
+        Integer length = delegate.getColumnLength(attribute)
         String newLength = (length != null && length != 0) ? "(" + length.toString() + ")" : ""
         return "alter table ${entity.table} alter column ${col} ${newType}${newLength} ^"
     }
@@ -530,7 +529,7 @@ class FirebirdDdlGenerator {
 
         def attrType = attribute.getType()
         if ((attrType.fqn?.equals('java.lang.String') || attrType.fqn == 'java.lang.Character') && attribute.getLength()) {
-            Integer length = delegate.getColumnLength(entity, attribute)
+            Integer length = delegate.getColumnLength(attribute)
             if (length) {
                 params.append('(').append(length).append(')')
             }
