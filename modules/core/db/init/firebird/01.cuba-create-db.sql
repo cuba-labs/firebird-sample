@@ -4,6 +4,7 @@ create table SYS_SCHEDULED_EXECUTION (
     CREATE_TS timestamp,
     CREATED_BY varchar(50),
     --
+    SYS_TENANT_ID varchar(255),
     TASK_ID varchar(36),
     SERVER varchar(255),
     START_TIME timestamp,
@@ -78,6 +79,7 @@ create table SEC_GROUP (
     --
     NAME varchar(255) not null,
     PARENT_ID varchar(36),
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -98,6 +100,7 @@ create table SYS_FOLDER (
     NAME varchar(100),
     SORT_ORDER integer,
     TAB_NAME varchar(255),
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -118,6 +121,8 @@ create table SEC_ROLE (
     DESCRIPTION varchar(1000),
     ROLE_TYPE integer,
     IS_DEFAULT_ROLE smallint,
+    SYS_TENANT_ID varchar(255),
+    SECURITY_SCOPE varchar(255),
     --
     primary key (ID)
 )^
@@ -128,6 +133,7 @@ create table SEC_GROUP_HIERARCHY (
     CREATE_TS timestamp,
     CREATED_BY varchar(50),
     --
+    SYS_TENANT_ID varchar(255),
     GROUP_ID varchar(36) not null,
     PARENT_ID varchar(36) not null,
     HIERARCHY_LEVEL integer,
@@ -156,6 +162,7 @@ create table SEC_CONSTRAINT (
     FILTER_XML blob sub_type text,
     IS_ACTIVE smallint,
     GROUP_ID varchar(36),
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -175,20 +182,6 @@ create table SYS_CONFIG (
     primary key (ID)
 )^
 -- end SYS_CONFIG
--- begin SYS_REFRESH_TOKEN
-create table SYS_REFRESH_TOKEN (
-    ID varchar(36),
-    --
-    CREATE_TS timestamp,
-    TOKEN_VALUE varchar(255),
-    TOKEN_BYTES blob,
-    AUTHENTICATION_BYTES blob,
-    EXPIRY timestamp,
-    USER_LOGIN varchar(255),
-    --
-    primary key (ID)
-)^
--- end SYS_REFRESH_TOKEN
 -- begin SYS_APP_FOLDER
 create table SYS_APP_FOLDER (
     FOLDER_ID varchar(36),
@@ -225,6 +218,7 @@ create table SYS_ENTITY_SNAPSHOT (
     INT_ENTITY_ID integer,
     LONG_ENTITY_ID bigint,
     --
+    SYS_TENANT_ID varchar(255),
     VIEW_XML varchar(255),
     SNAPSHOT_XML varchar(255),
     ENTITY_META_CLASS varchar(255),
@@ -254,6 +248,7 @@ create table SYS_CATEGORY_ATTR (
     CATEGORY_ENTITY_TYPE varchar(255),
     NAME varchar(255) not null,
     CODE varchar(50) not null,
+    DESCRIPTION varchar(255),
     ENUMERATION varchar(255),
     DATA_TYPE varchar(50),
     ENTITY_CLASS varchar(255),
@@ -265,8 +260,10 @@ create table SYS_CATEGORY_ATTR (
     DEFAULT_STRING varchar(255),
     DEFAULT_INT integer,
     DEFAULT_DOUBLE double precision,
+    DEFAULT_DECIMAL decimal(18, 10),
     DEFAULT_BOOLEAN smallint,
     DEFAULT_DATE timestamp,
+    DEFAULT_DATE_WO_TIME date,
     DEFAULT_DATE_IS_CURRENT smallint,
     WIDTH varchar(20),
     ROWS_COUNT integer,
@@ -275,7 +272,9 @@ create table SYS_CATEGORY_ATTR (
     JOIN_CLAUSE varchar(255),
     FILTER_XML varchar(255),
     LOCALE_NAMES varchar(255),
+    LOCALE_DESCRIPTIONS varchar(255),
     ENUMERATION_LOCALES varchar(255),
+    ATTRIBUTE_CONFIGURATION_JSON blob sub_type text,
     --
     primary key (ID)
 )^
@@ -304,6 +303,7 @@ create table SEC_REMEMBER_ME (
     --
     USER_ID varchar(36) not null,
     TOKEN varchar(32) not null,
+    CREATE_TS timestamp,
     --
     primary key (ID)
 )^
@@ -348,12 +348,14 @@ create table SYS_ATTR_VALUE (
     LONG_ENTITY_VALUE bigint,
     --
     CATEGORY_ATTR_ID varchar(36) not null,
-    CODE varchar(255),
+    CODE varchar(255) not null,
     STRING_VALUE varchar(255),
     INTEGER_VALUE integer,
     DOUBLE_VALUE double precision,
+    DECIMAL_VALUE decimal(18, 10),
     BOOLEAN_VALUE smallint,
     DATE_VALUE timestamp,
+    DATE_WO_TIME_VALUE date,
     PARENT_ID varchar(36),
     --
     primary key (ID)
@@ -391,6 +393,7 @@ create table SEC_FILTER (
     XML blob sub_type text,
     USER_ID varchar(36),
     GLOBAL_DEFAULT smallint,
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -408,6 +411,8 @@ create table SYS_SENDING_MESSAGE (
     --
     ADDRESS_TO varchar(255),
     ADDRESS_FROM varchar(255),
+    ADDRESS_CC varchar(255),
+    ADDRESS_BCC varchar(255),
     CAPTION varchar(500),
     CONTENT_TEXT varchar(255),
     CONTENT_TEXT_FILE_ID varchar(36),
@@ -418,6 +423,7 @@ create table SYS_SENDING_MESSAGE (
     ATTEMPTS_COUNT integer,
     ATTEMPTS_MADE integer,
     EMAIL_HEADERS varchar(255),
+    SYS_TENANT_ID varchar(255),
     BODY_CONTENT_TYPE varchar(50),
     --
     primary key (ID)
@@ -429,15 +435,42 @@ create table SEC_SCREEN_HISTORY (
     CREATE_TS timestamp,
     CREATED_BY varchar(50),
     --
+    ENTITY_ID varchar(36),
+    STRING_ENTITY_ID varchar(255),
+    INT_ENTITY_ID integer,
+    LONG_ENTITY_ID bigint,
+    --
+    SYS_TENANT_ID varchar(255),
     USER_ID varchar(36),
     SUBSTITUTED_USER_ID varchar(36),
     CAPTION varchar(255),
     URL varchar(4000),
-    ENTITY_ID varchar(36),
     --
     primary key (ID)
 )^
 -- end SEC_SCREEN_HISTORY
+-- begin SEC_ENTITY_LOG
+create table SEC_ENTITY_LOG (
+    ID varchar(36),
+    CREATE_TS timestamp,
+    CREATED_BY varchar(50),
+    --
+    ENTITY_ID varchar(36),
+    STRING_ENTITY_ID varchar(255),
+    INT_ENTITY_ID integer,
+    LONG_ENTITY_ID bigint,
+    --
+    SYS_TENANT_ID varchar(255),
+    EVENT_TS timestamp,
+    USER_ID varchar(36),
+    CHANGE_TYPE varchar(50),
+    ENTITY varchar(100),
+    ENTITY_INSTANCE_NAME varchar(255),
+    CHANGES varchar(255),
+    --
+    primary key (ID)
+)^
+-- end SEC_ENTITY_LOG
 -- begin SEC_PRESENTATION
 create table SEC_PRESENTATION (
     ID varchar(36),
@@ -451,31 +484,11 @@ create table SEC_PRESENTATION (
     XML varchar(4000),
     USER_ID varchar(36),
     IS_AUTO_SAVE smallint,
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
 -- end SEC_PRESENTATION
--- begin SEC_ENTITY_LOG
-create table SEC_ENTITY_LOG (
-    ID varchar(36),
-    CREATE_TS timestamp,
-    CREATED_BY varchar(50),
-    --
-    ENTITY_ID varchar(36),
-    STRING_ENTITY_ID varchar(255),
-    INT_ENTITY_ID integer,
-    LONG_ENTITY_ID bigint,
-    --
-    EVENT_TS timestamp,
-    USER_ID varchar(36),
-    CHANGE_TYPE varchar(50),
-    ENTITY varchar(100),
-    ENTITY_INSTANCE_NAME varchar(255),
-    CHANGES varchar(255),
-    --
-    primary key (ID)
-)^
--- end SEC_ENTITY_LOG
 -- begin SEC_USER
 create table SEC_USER (
     ID varchar(36),
@@ -490,6 +503,7 @@ create table SEC_USER (
     LOGIN varchar(50) not null,
     LOGIN_LC varchar(50) not null,
     PASSWORD varchar(255),
+    PASSWORD_ENCRYPTION varchar(50),
     NAME varchar(255),
     FIRST_NAME varchar(255),
     LAST_NAME varchar(255),
@@ -502,7 +516,9 @@ create table SEC_USER (
     ACTIVE smallint,
     CHANGE_PASSWORD_AT_LOGON smallint,
     GROUP_ID varchar(36) not null,
+    GROUP_NAMES varchar(255),
     IP_MASK varchar(200),
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -536,6 +552,7 @@ create table SYS_FILE (
     EXT varchar(20),
     FILE_SIZE bigint,
     CREATE_DATE timestamp,
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -573,6 +590,7 @@ create table SYS_SENDING_ATTACHMENT (
     CONTENT_ID varchar(50),
     DISPOSITION varchar(50),
     TEXT_ENCODING varchar(50),
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -619,6 +637,7 @@ create table SYS_SCHEDULED_TASK (
     DELETED_BY varchar(50),
     --
     DEFINED_BY varchar(50),
+    SYS_TENANT_ID varchar(255),
     BEAN_NAME varchar(255),
     METHOD_NAME varchar(255),
     CLASS_NAME varchar(255),
@@ -626,7 +645,7 @@ create table SYS_SCHEDULED_TASK (
     USER_NAME varchar(255),
     IS_SINGLETON smallint,
     IS_ACTIVE smallint,
-    PERIOD integer,
+    PERIOD_ integer,
     TIMEOUT integer,
     START_DATE timestamp,
     CRON varchar(255),
@@ -677,23 +696,6 @@ create table SYS_QUERY_RESULT (
     primary key (ID)
 )^
 -- end SYS_QUERY_RESULT
--- begin SYS_ACCESS_TOKEN
-create table SYS_ACCESS_TOKEN (
-    ID varchar(36),
-    --
-    CREATE_TS timestamp,
-    TOKEN_VALUE varchar(255),
-    TOKEN_BYTES blob,
-    AUTHENTICATION_KEY varchar(255),
-    AUTHENTICATION_BYTES blob,
-    EXPIRY timestamp,
-    USER_LOGIN varchar(255),
-    LOCALE varchar(255),
-    REFRESH_TOKEN_VALUE varchar(255),
-    --
-    primary key (ID)
-)^
--- end SYS_ACCESS_TOKEN
 -- begin SEC_USER_SUBSTITUTION
 create table SEC_USER_SUBSTITUTION (
     ID varchar(36),
@@ -709,6 +711,7 @@ create table SEC_USER_SUBSTITUTION (
     SUBSTITUTED_USER_ID varchar(36) not null,
     START_DATE date,
     END_DATE date,
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -725,7 +728,7 @@ create table SEC_SESSION_LOG (
     DELETED_BY varchar(50),
     --
     SESSION_ID varchar(36) not null,
-    SUBSTITUTED_USER_ID varchar(36) not null,
+    SUBSTITUTED_USER_ID varchar(36),
     USER_ID varchar(36) not null,
     USER_DATA blob sub_type text,
     LAST_ACTION integer not null,
@@ -735,6 +738,7 @@ create table SEC_SESSION_LOG (
     FINISHED_TS timestamp,
     CLIENT_TYPE varchar(50),
     SERVER_ID varchar(255),
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -751,7 +755,8 @@ create table SEC_USER_ROLE (
     DELETED_BY varchar(50),
     --
     USER_ID varchar(36) not null,
-    ROLE_ID varchar(36) not null,
+    ROLE_ID varchar(36),
+    ROLE_NAME varchar(255),
     --
     primary key (ID)
 )^
@@ -771,6 +776,7 @@ create table SEC_SESSION_ATTR (
     STR_VALUE varchar(1000),
     DATATYPE varchar(20),
     GROUP_ID varchar(36),
+    SYS_TENANT_ID varchar(255),
     --
     primary key (ID)
 )^
@@ -791,20 +797,17 @@ create procedure newid
 insert into SEC_GROUP (ID, CREATE_TS, VERSION, NAME, PARENT_ID)
 values ('0fa2b1a5-1d68-4d69-9fbd-dff348347f93', CURRENT_TIMESTAMP, 0, 'Company', null)^
 
-insert into SEC_USER (ID, CREATE_TS, VERSION, LOGIN, LOGIN_LC, PASSWORD, NAME, GROUP_ID, ACTIVE)
+insert into SEC_USER (ID, CREATE_TS, VERSION, LOGIN, LOGIN_LC, PASSWORD, PASSWORD_ENCRYPTION, NAME, GROUP_ID, ACTIVE)
 values ('60885987-1b61-4247-94c7-dff348347f93', CURRENT_TIMESTAMP, 0, 'admin', 'admin',
-'cc2229d1b8a052423d9e1c9ef0113b850086586a',
+'$2a$10$vQx8b8B7jzZ0rQmtuK4YDOKp7nkmUCFjPx6DMT.voPtetNHFOsaOu', 'bcrypt',
 'Administrator', '0fa2b1a5-1d68-4d69-9fbd-dff348347f93', 1)^
 
 insert into SEC_USER (ID, CREATE_TS, VERSION, LOGIN, LOGIN_LC, PASSWORD, NAME, GROUP_ID, ACTIVE)
 values ('a405db59-e674-4f63-8afe-269dda788fe8', CURRENT_TIMESTAMP, 0, 'anonymous', 'anonymous', null,
 'Anonymous', '0fa2b1a5-1d68-4d69-9fbd-dff348347f93', 1)^
 
-insert into SEC_ROLE (ID, CREATE_TS, VERSION, NAME, ROLE_TYPE)
-values ('0c018061-b26f-4de2-a5be-dff348347f93', CURRENT_TIMESTAMP, 0, 'Administrators', 10)^
-
-insert into SEC_USER_ROLE (ID, CREATE_TS, VERSION, USER_ID, ROLE_ID)
-values ('c838be0a-96d0-4ef4-a7c0-dff348347f93', CURRENT_TIMESTAMP, 0, '60885987-1b61-4247-94c7-dff348347f93', '0c018061-b26f-4de2-a5be-dff348347f93')^
+insert into SEC_USER_ROLE (ID, CREATE_TS, VERSION, USER_ID, ROLE_NAME)
+values ('6736effb-9dfc-4430-973a-69868606b09c', CURRENT_TIMESTAMP, 0, '60885987-1b61-4247-94c7-dff348347f93', 'system-full-access')^
 
 insert into SEC_FILTER (ID, CREATE_TS, CREATED_BY, VERSION, COMPONENT, NAME, XML, USER_ID, GLOBAL_DEFAULT)
 values ('b61d18cb-e79a-46f3-b16d-eaf4aebb10dd', CURRENT_TIMESTAMP, 'admin', 0, '[sec$User.browse].genericFilter', 'Search by role',

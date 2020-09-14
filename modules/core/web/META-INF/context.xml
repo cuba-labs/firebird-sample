@@ -1,25 +1,3 @@
 <Context>
-    <!-- Database connection -->
-    <Resource driverClassName="org.firebirdsql.jdbc.FBDriver"
-              maxIdle="2"
-              maxTotal="20"
-              maxWaitMillis="5000"
-              name="jdbc/CubaDS"
-              password="cuba"
-              type="javax.sql.DataSource"
-              url="jdbc:firebirdsql://localhost//home/budarov/fbdb/sample1.fdb?encoding=UTF8"
-              username="sysdba"
-              validationQuery=""/>
-    
-    <!-- Switch off session serialization -->
     <Manager pathname=""/>
-    <!--<Resource driverClassName="org.hsqldb.jdbc.JDBCDriver"
-          maxIdle="2"
-          maxTotal="20"
-          maxWaitMillis="5000"
-          name="jdbc/CubaDS"
-          password=""
-          type="javax.sql.DataSource"
-          url="jdbc:hsqldb:hsql://localhost/firebird4"
-          username="sa"/>-->
 </Context>

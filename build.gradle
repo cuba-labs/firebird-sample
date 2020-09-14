@@ -1,8 +1,6 @@
-
 buildscript {
-    ext.cubaVersion = '6.10.18'
+    ext.cubaVersion = '7.2.7'
     repositories {
-        
         maven {
             url 'https://repo.cuba-platform.com/content/groups/work'
             credentials {
@@ -10,7 +8,6 @@ buildscript {
                 password(rootProject.hasProperty('repoPass') ? rootProject['repoPass'] : 'cuba123')
             }
         }
-        
     }
     dependencies {
         classpath "com.haulmont.gradle:cuba-plugin:$cubaVersion"
@@ -22,13 +19,10 @@ def modulePrefix = 'firebird'
 
 def globalModule = project(":${modulePrefix}-global")
 def coreModule = project(":${modulePrefix}-core")
-def guiModule = project(":${modulePrefix}-gui")
 def webModule = project(":${modulePrefix}-web")
 
 def servletApi = 'javax.servlet:javax.servlet-api:3.1.0'
 
-
-apply(plugin: 'idea')
 apply(plugin: 'cuba')
 
 cuba {
@@ -36,9 +30,6 @@ cuba {
         group = 'com.company.firebird4'
         version = '0.1'
         isSnapshot = true
-    }
-    tomcat {
-        dir = "$project.rootDir/deploy/tomcat"
     }
     ide {
         vcs = 'Git'
@@ -52,14 +43,16 @@ dependencies {
 
 def firebird = 'org.firebirdsql.jdbc:jaybird:4.0.1.java8'
 
-configure([globalModule, coreModule, guiModule, webModule]) {
+configure([globalModule, coreModule, webModule]) {
     apply(plugin: 'java')
     apply(plugin: 'maven')
-    apply(plugin: 'idea')
     apply(plugin: 'cuba')
 
     dependencies {
         testCompile('junit:junit:4.12')
+        testCompile('org.junit.jupiter:junit-jupiter-api:5.5.2')
+        testCompile('org.junit.jupiter:junit-jupiter-engine:5.5.2')
+        testCompile('org.junit.vintage:junit-vintage-engine:5.5.2')
     }
 
     task sourceJar(type: Jar) {
@@ -70,9 +63,19 @@ configure([globalModule, coreModule, guiModule, webModule]) {
     artifacts {
         archives sourceJar
     }
+
+    test {
+        useJUnitPlatform()
+    }
 }
 
 configure(globalModule) {
+    dependencies {
+        if (!JavaVersion.current().isJava8()) {
+            runtime('javax.xml.bind:jaxb-api:2.3.1')
+            runtime('org.glassfish.jaxb:jaxb-runtime:2.3.1')
+        }
+    }
     entitiesEnhancing {
         main { enabled = true }
     }
@@ -94,22 +97,15 @@ configure(coreModule) {
 
     dependencies {
         compile(globalModule)
-        provided(servletApi)
+        compileOnly(servletApi)
         compile(firebird)
         jdbc(firebird)
         testRuntime(firebird)
 
     }
 
-    task cleanConf(description: 'Cleans up conf directory') {
-        doLast {
-            def dir = new File(cuba.tomcat.dir, "/conf/${modulePrefix}-core")
-            if (dir.isDirectory()) {
-                ant.delete(includeemptydirs: true) {
-                    fileset(dir: dir, includes: '**/*', excludes: 'local.app.properties')
-                }
-            }
-        }
+    task cleanConf(description: 'Cleans up conf directory', type: Delete) {
+        delete "$cuba.appHome/${modulePrefix}-core/conf"
     }
 
     task deploy(dependsOn: [assemble, cleanConf], type: CubaDeployment) {
@@ -118,43 +114,19 @@ configure(coreModule) {
     }
 
     task createDb(dependsOn: assembleDbScripts, description: 'Creates local database', type: FirebirdDbCreation) {
-        createDbSql = "CREATE DATABASE '/home/budarov/fbdb/sample1.fdb' page_size 8192;"
-        dropDbSql = 'DROP DATABASE;'
+        driver = 'org.firebirdsql.jdbc.FBDriver'
         masterUrl = ''
         timeStampType = 'timestamp'
-        driver = 'org.firebirdsql.jdbc.FBDriver'
-        dbms = 'firebird'
-        host = 'localhost'
-        dbName = '/home/budarov/fbdb/sample1.fdb'
-        dbUser = 'sysdba'
-        dbPassword = 'cuba'
-        dbUrl = "jdbc:firebirdsql://$host/$dbName?encoding=UTF8"
+        dropDbSql = 'DROP DATABASE;'
+        createDbSql = 'CREATE DATABASE \'/home/budarov/firebird/data/sample1.fdb\' page_size 8192;'
     }
 
     task updateDb(dependsOn: assembleDbScripts, description: 'Updates local database', type: CubaDbUpdate) {
-        timeStampType = 'timestamp'
         driver = 'org.firebirdsql.jdbc.FBDriver'
-        dbms = 'firebird'
-        host = 'localhost'
-        dbName = '/home/budarov/fbdb/sample1.fdb'
-        dbUser = 'sysdba'
-        dbPassword = 'cuba'
-        dbUrl = "jdbc:firebirdsql://$host/$dbName?encoding=UTF8"
+        timeStampType = 'timestamp'
     }
 }
 
-configure(guiModule) {
-    dependencies {
-        compile(globalModule)
-
-    }
-
-    task deployConf(type: Copy) {
-        from file('src')
-        include "com/company/firebird4/**"
-        into "$cuba.tomcat.dir/conf/${modulePrefix}"
-    }
-}
 
 configure(webModule) {
     configurations {
@@ -162,11 +134,11 @@ configure(webModule) {
     }
 
     dependencies {
-        provided(servletApi)
-        compile(guiModule)
+        compileOnly(servletApi)
+        compile(globalModule)
 
     }
-    
+
     task webArchive(type: Zip) {
         from file("$buildDir/web")
         from file('web')
@@ -180,7 +152,7 @@ configure(webModule) {
     task deployConf(type: Copy) {
         from file('src')
         include "com/company/firebird4/**"
-        into "$cuba.tomcat.dir/conf/${modulePrefix}"
+        into "$cuba.appHome/${modulePrefix}/conf"
     }
 
     task clearMessagesCache(type: CubaClearMessagesCache) {
@@ -188,25 +160,15 @@ configure(webModule) {
     }
     deployConf.dependsOn clearMessagesCache
 
-    task cleanConf(description: 'Cleans up conf directory') {
-        doLast {
-            def dir = new File(cuba.tomcat.dir, "/conf/${modulePrefix}")
-            if (dir.isDirectory()) {
-                ant.delete(includeemptydirs: true) {
-                    fileset(dir: dir, includes: '**/*', excludes: 'local.app.properties')
-                }
-            }
-        }
+    task cleanConf(description: 'Cleans up conf directory', type: Delete) {
+        delete "$cuba.appHome/${modulePrefix}/conf"
     }
 
     task deploy(dependsOn: [assemble, cleanConf], type: CubaDeployment) {
         appName = "${modulePrefix}"
-        appJars(modulePrefix + '-global', modulePrefix + '-gui', modulePrefix + '-web')
+        appJars(modulePrefix + '-global', modulePrefix + '-web')
     }
 }
-
-
-
 
 
 task undeploy(type: Delete, dependsOn: ":${modulePrefix}-web:cleanConf") {
@@ -222,13 +184,9 @@ task restart(dependsOn: ['stop', ":${modulePrefix}-core:deploy", ":${modulePrefi
                 socket(server: 'localhost', port: '8787')
             }
         }
-        start.execute()
     }
 }
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.3.1'
-}
+restart.finalizedBy start
 
 class FirebirdDbCreation extends CubaDbCreation {
 
