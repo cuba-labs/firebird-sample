@@ -3,5 +3,7 @@
              version="2.0">
     <persistence-unit name="firebird4"
                       transaction-type="RESOURCE_LOCAL">
+        <class>com.company.firebird4.entity.Student</class>
+        <class>com.company.firebird4.entity.Group</class>
     </persistence-unit>
 </persistence>
