@@ -2,6 +2,7 @@ package com.haulmont.studio.db.firebird
 
 import javax.annotation.Nullable
 import java.sql.SQLException
+import java.util.regex.Pattern
 
 /**
  * This class is used by Studio at design time for working with Firebird.
@@ -155,7 +156,7 @@ class FirebirdDbProperties {
      * @return connection URL
      */
     String createDbUrl(String host, String dbName, String connectionParams) {
-        return "${getUrlPrefix()}${host}/${dbName}${connectionParams}"
+        return '' // not used at the moment for custom DB
     }
 
     /**
@@ -204,15 +205,7 @@ class FirebirdDbProperties {
     String getConnectionParams(String url) {
         if (!url)
             return null
-        String subsLastSlash = substringWithLastSlash(url)
-        if (!subsLastSlash) {
-            return ''
-        }
-        def m = subsLastSlash =~ /[^?;,\\]*([?;,\\].*)/
-        if (m.find()) {
-            return m.group(1)
-        }
-        return ''
+        return extractConnectionParams(url)
     }
 
     /**
@@ -224,14 +217,8 @@ class FirebirdDbProperties {
     String getHost(String url) {
         if (!url)
             return null
-        int slash = url.lastIndexOf('/')
-        if (slash <= 0)
-            return ""
-        String beforeName = url.substring(0, slash)
-        slash = beforeName.lastIndexOf('/')
-        if (slash <= 0)
-            return ''
-        return beforeName.substring(slash + 1)
+
+       return extractHost(url)
     }
 
     /**
@@ -240,12 +227,9 @@ class FirebirdDbProperties {
      * @return database name
      */
     String getDatabaseName(String url) {
-        String subsLastSlash = substringWithLastSlash(url)
-        if (!subsLastSlash) {
-            return ''
-        }
-        String[] splitDbName = subsLastSlash.split(/[?;,\\]/)
-        return splitDbName.length == 0 ? '' : splitDbName[0]
+        if (!url)
+            return null
+        return extractDbName(url)
     }
 
     /**
@@ -255,7 +239,7 @@ class FirebirdDbProperties {
      * @return "drop database" statement
      */
     String getDropDatabaseStatement(def dbName) {
-        return "DROP DATABASE;"
+        return ''
     }
 
     /**
@@ -265,8 +249,7 @@ class FirebirdDbProperties {
      * @return "create database" statement
      */
     String getCreateDatabaseStatement(def dbName) {
-        def userHome = System.getProperty('user.home')
-        return "CREATE DATABASE '${userHome}/firebird/data/${dbName}' page_size 8192;"
+        return ''
     }
 
     /**
@@ -278,14 +261,36 @@ class FirebirdDbProperties {
         return 'timestamp'
     }
 
-    private String substringWithLastSlash(String url) {
-        if (!url) {
-            return null
+    // see com.company.firebird4.core.UrlPatternTest
+    private static Pattern pattern = Pattern.compile("jdbc:firebirdsql://([^:/\\s]+:?\\d*)/([^?]+)(\\?.*)?");
+
+    static String extractHost(String url) {
+        url = url.replace('\\', '/') // replace windows directory slash
+
+        def m = pattern.matcher(url)
+        if (m.matches()) {
+            return m.group(1)
         }
-        int slash = url.lastIndexOf('/')
-        if (slash <= 0) {
-            return null
+        return ''
+    }
+
+    static String extractDbName(String url) {
+        url = url.replace('\\', '/') // replace windows directory slash
+
+        def m = pattern.matcher(url)
+        if (m.matches()) {
+            return m.group(2)
         }
-        return url.substring(slash + 1)
+        return ''
+    }
+
+    static String extractConnectionParams(String url) {
+        url = url.replace('\\', '/') // replace windows directory slash
+
+        def m = pattern.matcher(url)
+        if (m.matches()) {
+            return m.group(3)
+        }
+        return ''
     }
 }

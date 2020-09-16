@@ -117,8 +117,8 @@ configure(coreModule) {
         driver = 'org.firebirdsql.jdbc.FBDriver'
         masterUrl = ''
         timeStampType = 'timestamp'
-        dropDbSql = 'DROP DATABASE;'
-        createDbSql = 'CREATE DATABASE \'/home/budarov/firebird/data/sample1.fdb\' page_size 8192;'
+        dropDbSql = ''
+        createDbSql = ''
     }
 
     task updateDb(dependsOn: assembleDbScripts, description: 'Updates local database', type: CubaDbUpdate) {
@@ -202,16 +202,18 @@ class FirebirdDbCreation extends CubaDbCreation {
         manager.setUserName(dbUser)
         manager.setPassword(dbPassword)
         manager.setDefaultCharacterSet('UTF8')
-        try {
-            manager.start()
+        if (new File(dbName).exists()) {
             try {
-                manager.dropDatabase(dbName, dbUser, dbPassword)
-                project.logger.warn("Database dropped")
-            } finally {
-                manager.stop()
+                manager.start()
+                try {
+                    manager.dropDatabase(dbName, dbUser, dbPassword)
+                    project.logger.warn("Database dropped")
+                } finally {
+                    manager.stop()
+                }
+            } catch (Exception e) {
+                project.logger.error("Database drop failed", e)
             }
-        } catch (Exception e) {
-            project.logger.error("Database drop failed", e)
         }
 
         try {
