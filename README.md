@@ -24,7 +24,7 @@ The integration is implemented using the following classes:
 1. Download and install Firebird DB server.
 2. Download Jaybird JDBC driver (https://firebirdsql.org/en/jdbc-driver/). Extract ZIP archive and copy necessary driver files to the `{user home}/.haulmont/studio/lib` folder. E.g. for the `jaybird-4.0.1.java8.zip` version the list of files to be copied is: `jaybird-4.0.1.java8.jar`, `antlr-runtime-4.7.2.jar`, `connector-api-1.5.jar`, `jna-5.5.0.jar`.
 3. Open the project in the CUBA Studio (*File* -> *New Project from Version Control*)
-4. Modify the [app.properties](https://github.com/cuba-labs/firebird-sample/blob/master/modules/core/com/company/firebird4/app.properties#L31) file and set correct paths in the `cuba.dataSource.jdbcUrl` and other nearby properties. Alternatively - change database URL in the Main Data Store Settings dialog (main menu: *CUBA* -> *Main Data Store Settings*). 
+4. Modify the [app.properties](https://github.com/cuba-labs/firebird-sample/blob/master/modules/core/src/com/company/firebird4/app.properties#L31) file and set correct paths in the `cuba.dataSource.jdbcUrl` and other nearby properties. Alternatively - change database URL in the Main Data Store Settings dialog (main menu: *CUBA* -> *Main Data Store Settings*). 
 5. Execute the *CUBA* -> *Create Database* task in the main menu.
 6. Start the project from the Studio.
 
@@ -45,4 +45,4 @@ the dropAndCreateDatabase method. Find an example [here](https://github.com/cuba
 8. Start the project from the Studio.
 
 ## Linux usage notes
-Directory where database files are located should be writeable for both current user and `firebird` user running Firebird server. Access from the current user is performed when the `gradlew createDb` task is executed to re-create the database file.
+Directory where database files are located should be owned by the `firebird` user running Firebird server.
