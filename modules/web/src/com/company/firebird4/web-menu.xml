@@ -2,7 +2,5 @@
 <menu-config xmlns="http://schemas.haulmont.com/cuba/menu.xsd">
     <menu id="application-firebird4"
           insertBefore="administration">
-        <item screen="firebird4_Group.browse" caption="mainMsg://menu_config.firebird4_Group.browse"/>
-        <item screen="firebird4_Student.browse" caption="mainMsg://menu_config.firebird4_Student.browse"/>
     </menu>
 </menu-config>
