@@ -21,12 +21,13 @@ The integration is implemented using the following classes:
 
 ## Running the project
 
-1. Download and install Firebird DB server.
-2. Download Jaybird JDBC driver (https://firebirdsql.org/en/jdbc-driver/). Extract ZIP archive and copy necessary driver files to the `{user home}/.haulmont/studio/lib` folder. E.g. for the `jaybird-4.0.1.java8.zip` version the list of files to be copied is: `jaybird-4.0.1.java8.jar`, `antlr-runtime-4.7.2.jar`, `connector-api-1.5.jar`, `jna-5.5.0.jar`.
-3. Open the project in the CUBA Studio (*File* -> *New Project from Version Control*)
-4. Modify the [app.properties](https://github.com/cuba-labs/firebird-sample/blob/master/modules/core/src/com/company/firebird4/app.properties#L31) file and set correct paths in the `cuba.dataSource.jdbcUrl` and other nearby properties. Alternatively - change database URL in the Main Data Store Settings dialog (main menu: *CUBA* -> *Main Data Store Settings*). 
-5. Execute the *CUBA* -> *Create Database* task in the main menu.
-6. Start the project from the Studio.
+1. Install CUBA Studio **14.3** or later.
+2. Download and install Firebird DB server.
+3. Download Jaybird JDBC driver (https://firebirdsql.org/en/jdbc-driver/). Extract ZIP archive and copy necessary driver files to the `{user home}/.haulmont/studio/lib` folder. E.g. for the `jaybird-4.0.1.java8.zip` version the list of files to be copied is: `jaybird-4.0.1.java8.jar`, `antlr-runtime-4.7.2.jar`, `connector-api-1.5.jar`, `jna-5.5.0.jar`.
+4. Open the project in the CUBA Studio (*File* -> *New Project from Version Control*)
+5. Modify the [app.properties](https://github.com/cuba-labs/firebird-sample/blob/master/modules/core/src/com/company/firebird4/app.properties#L31) file and set correct paths in the `cuba.dataSource.jdbcUrl` and other nearby properties. Alternatively - change database URL in the Main Data Store Settings dialog (main menu: *CUBA* -> *Main Data Store Settings*). 
+6. Execute the *CUBA* -> *Create Database* task in the main menu.
+7. Start the project from the Studio.
 
 ## Using as app-component
 
